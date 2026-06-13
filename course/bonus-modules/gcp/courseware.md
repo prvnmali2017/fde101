@@ -19,6 +19,7 @@ By the end, students can:
 3. Swap OpenAI → Vertex AI (Gemini) and ChromaDB → Vertex AI Vector Search
 4. Wire secrets, identity, networking, and observability the GCP way
 5. Explain the cost and security posture to a customer
+6. Design a multi-agent system on GCP (ADK, Vertex AI Agent Engine, A2A, Workflows)
 
 ---
 
@@ -230,7 +231,28 @@ By the end, students can:
 
 ---
 
-### Slide 18 — What we deployed
+### Slide 18 — Topic: Multi-Agent Orchestration on GCP
+- One agent → a **team of specialized agents** coordinated by an orchestrator
+- When to use: workflows too broad for a single prompt/toolset
+- RetailCo example: an **orchestrator** routes "policy" questions → **RAG agent**, "order" questions → **order-lookup agent**, "warranty claims" → **claims agent**
+- Benefits: separation of concerns, per-agent prompts/tools/safety settings, easier eval
+
+**Speaker notes:** Same motivation as the other clouds — a single mega-prompt becomes brittle as pilots grow. Google has rapidly built out first-party agent tooling (ADK + Agent Engine), so this resonates with Vertex-AI customers. Use the RetailCo split as the running example.
+
+---
+
+### Slide 19 — GCP services for multi-agent
+- **Agent Development Kit (ADK)**: Google's open-source framework for multi-agent systems
+- **Vertex AI Agent Engine**: managed runtime to deploy/scale agents (with sessions + tracing)
+- **Agent2Agent (A2A) protocol**: open standard for agent-to-agent interop across frameworks
+- **Workflows / Cloud Tasks**: deterministic orchestration of agent/tool steps with retries
+- **Observability**: Cloud Trace + Cloud Logging; tag spans per agent for cost/latency attribution
+
+**Speaker notes:** Map options to control level. ADK = code-first multi-agent authoring; Agent Engine = managed deploy/scale with built-in tracing; A2A = interop standard worth mentioning when a customer has agents in multiple frameworks/vendors. Workflows = deterministic, auditable orchestration with human-approval steps for regulated customers. Stress per-agent tracing in Cloud Trace for debugging, cost, and audit.
+
+---
+
+### Slide 20 — What we deployed
 - Pilot live in customer GCP project
 - Vertex AI (Gemini) + Vector Search RAG
 - IAM-secured, observable, IaC-managed
@@ -339,7 +361,7 @@ resource "google_project_iam_member" "vertex" {
 
 ---
 
-## Quiz (6 questions)
+## Quiz (7 questions)
 
 1. What is the data-residency benefit of Vertex AI over public OpenAI? *(data stays in the GCP project/region)*
 2. Why is Cloud Run a great default for pilots? *(serverless, scale-to-zero, pay-per-request, simplest)*
@@ -347,6 +369,7 @@ resource "google_project_iam_member" "vertex" {
 4. What identity does a Cloud Run app use to access Vertex/Secrets? *(a least-privilege service account)*
 5. What does VPC Service Controls protect against? *(data exfiltration — creates a security perimeter)*
 6. Name two cost levers in this stack. *(Cloud Run scale-to-zero; Gemini Flash vs Pro; Vector Search vs pgvector; delete resources)*
+7. Name two GCP options for multi-agent orchestration and when you'd pick each. *(ADK = code-first authoring; Agent Engine = managed deploy/scale with tracing; A2A = cross-framework interop; Workflows = deterministic/auditable with human-in-the-loop)*
 
 ---
 

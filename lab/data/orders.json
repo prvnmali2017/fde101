@@ -1,0 +1,38 @@
+[
+  {
+    "order_id": "ORD-1001",
+    "customer_email": "jane.doe@example.com",
+    "status": "Delivered",
+    "items": ["Ceramic Vase Set", "LED Desk Lamp"],
+    "tracking": "RR123456789AU",
+    "ordered_at": "2026-05-28",
+    "delivered_at": "2026-06-03"
+  },
+  {
+    "order_id": "ORD-1002",
+    "customer_email": "bob.smith@example.com",
+    "status": "In Transit",
+    "items": ["Bluetooth Speaker"],
+    "tracking": "RR987654321AU",
+    "ordered_at": "2026-06-08",
+    "delivered_at": null
+  },
+  {
+    "order_id": "ORD-1003",
+    "customer_email": "alice.wong@example.com",
+    "status": "Processing",
+    "items": ["Kitchen Knife Set", "Cutting Board"],
+    "tracking": null,
+    "ordered_at": "2026-06-10",
+    "delivered_at": null
+  },
+  {
+    "order_id": "ORD-1004",
+    "customer_email": "carlos.rivera@example.com",
+    "status": "Return Initiated",
+    "items": ["Wireless Headphones"],
+    "tracking": "RR555666777AU",
+    "ordered_at": "2026-05-15",
+    "delivered_at": "2026-05-20"
+  }
+]

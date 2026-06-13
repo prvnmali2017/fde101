@@ -19,6 +19,7 @@ By the end, students can:
 3. Swap OpenAI → Amazon Bedrock and ChromaDB → OpenSearch Serverless (or Bedrock Knowledge Bases)
 4. Wire secrets, identity, networking, and observability the AWS way
 5. Explain the cost and security posture to a customer
+6. Design a multi-agent system on AWS (Bedrock Agents collaboration, Strands SDK, Step Functions)
 
 ---
 
@@ -227,7 +228,28 @@ By the end, students can:
 
 ---
 
-### Slide 18 — What we deployed
+### Slide 18 — Topic: Multi-Agent Orchestration on AWS
+- One agent → a **team of specialized agents** coordinated by a supervisor
+- When to use: workflows too broad for a single prompt/toolset
+- RetailCo example: a **supervisor** routes "policy" questions → **RAG agent**, "order" questions → **order-lookup agent**, "warranty claims" → **claims agent**
+- Benefits: separation of concerns, per-agent prompts/tools/guardrails, easier eval
+
+**Speaker notes:** Motivate the jump from single-agent (Ch 4) to multi-agent. As pilots grow, one mega-prompt becomes brittle. Splitting into specialist agents with a router/supervisor keeps each agent simple, testable, and independently improvable. Use the RetailCo split as the running example.
+
+---
+
+### Slide 19 — AWS services for multi-agent
+- **Amazon Bedrock Agents — multi-agent collaboration**: a supervisor agent delegates to collaborator agents (managed)
+- **Strands Agents SDK** (open-source, AWS): code-first agents/tools, model-agnostic on Bedrock
+- **AWS Step Functions**: deterministic orchestration of agent/tool steps (retries, branching, human approval)
+- **Frameworks** (LangGraph, CrewAI) running on ECS/Lambda over Bedrock
+- **Observability**: CloudWatch + per-agent traces; tag spans by agent for cost/latency attribution
+
+**Speaker notes:** Map options to control level. Bedrock multi-agent collaboration = managed/fastest. Strands SDK = code-first control (note: your aiops-develop work used Strands-style supervisors). Step Functions = when you need deterministic, auditable orchestration with human-in-the-loop steps — valuable for regulated customers. Stress observability: in multi-agent systems you must trace which agent did what for debugging, cost, and audit.
+
+---
+
+### Slide 20 — What we deployed
 - Pilot live in customer AWS account
 - Bedrock LLM + OpenSearch RAG
 - Secure, observable, IaC-managed
@@ -330,7 +352,7 @@ resource "aws_iam_role_policy" "task_perms" {
 
 ---
 
-## Quiz (6 questions)
+## Quiz (7 questions)
 
 1. What is the main enterprise benefit of Bedrock over public OpenAI? *(data stays in the AWS account/region)*
 2. When choose App Runner vs ECS Fargate? *(App Runner = simplest; Fargate = VPC/network control)*
@@ -338,6 +360,7 @@ resource "aws_iam_role_policy" "task_perms" {
 4. What does a VPC endpoint achieve for Bedrock/OpenSearch traffic? *(keeps it private, off the internet)*
 5. Why use an IAM task role instead of embedding credentials? *(least privilege, no secrets in image)*
 6. Name two cost levers in this stack. *(Bedrock model choice Haiku vs Sonnet; Fargate sizing; OpenSearch OCU; tear down idle)*
+7. Name two AWS options for multi-agent orchestration and when you'd pick each. *(Bedrock Agents multi-agent collaboration = managed/fast; Strands SDK = code-first control; Step Functions = deterministic/auditable with human-in-the-loop)*
 
 ---
 

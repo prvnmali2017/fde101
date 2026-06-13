@@ -19,6 +19,7 @@ By the end, students can:
 3. Swap OpenAI → Azure OpenAI and ChromaDB → Azure AI Search
 4. Wire secrets, identity, networking, and observability the Azure way
 5. Explain the cost and security posture to a customer
+6. Design a multi-agent system on Azure (AI Foundry Agent Service, Semantic Kernel, AutoGen, Durable Functions)
 
 ---
 
@@ -229,7 +230,28 @@ By the end, students can:
 
 ---
 
-### Slide 18 — What we deployed
+### Slide 18 — Topic: Multi-Agent Orchestration on Azure
+- One agent → a **team of specialized agents** coordinated by an orchestrator
+- When to use: workflows too broad for a single prompt/toolset
+- RetailCo example: an **orchestrator** routes "policy" questions → **RAG agent**, "order" questions → **order-lookup agent**, "warranty claims" → **claims agent**
+- Benefits: separation of concerns, per-agent prompts/tools/content-filters, easier eval
+
+**Speaker notes:** Same motivation as the other clouds — single mega-prompt gets brittle as pilots grow. Microsoft has the richest first-party agent tooling, so this lands especially well with Azure customers. Use the RetailCo split as the running example.
+
+---
+
+### Slide 19 — Azure services for multi-agent
+- **Azure AI Foundry Agent Service**: managed agents with **connected/multi-agent** workflows
+- **Semantic Kernel**: Microsoft's orchestration SDK — agents, planners, plugins (multi-agent supported)
+- **AutoGen**: Microsoft Research multi-agent conversation framework (great for prototyping agent teams)
+- **Azure Durable Functions**: stateful, auditable orchestration with human-approval steps
+- **Observability**: Application Insights traces + Azure Monitor; tag spans per agent
+
+**Speaker notes:** Map options to control level. AI Foundry Agent Service = managed/fastest, native to Azure. Semantic Kernel = production code-first orchestration in .NET/Python. AutoGen = rapid multi-agent experimentation. Durable Functions = deterministic, auditable workflows with human-in-the-loop — important for APRA/finance customers. Stress per-agent tracing in App Insights for debugging, cost, and audit.
+
+---
+
+### Slide 20 — What we deployed
 - Pilot live in customer Azure subscription
 - Azure OpenAI + AI Search RAG
 - Entra identity, secure, observable
@@ -325,7 +347,7 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
 
 ---
 
-## Quiz (6 questions)
+## Quiz (7 questions)
 
 1. Why do Microsoft enterprises prefer Azure OpenAI over public OpenAI? *(same models, in-tenant data + compliance + Entra)*
 2. When choose Container Apps vs AKS? *(Container Apps = serverless/simplest; AKS = full K8s if mandated)*
@@ -333,6 +355,7 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
 4. What does a managed identity remove the need for? *(stored credentials/secrets in the app)*
 5. What does a Private Endpoint achieve? *(keeps OpenAI/Search traffic on the VNet, off the internet)*
 6. Name two cost levers in this stack. *(scale-to-zero; GPT-4o-mini; AI Search tier; delete resource group)*
+7. Name two Azure options for multi-agent orchestration and when you'd pick each. *(AI Foundry Agent Service = managed/fast; Semantic Kernel = production code-first; AutoGen = prototyping; Durable Functions = deterministic/auditable with human-in-the-loop)*
 
 ---
 

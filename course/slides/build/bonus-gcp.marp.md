@@ -1,0 +1,360 @@
+---
+marp: true
+theme: mlopsguru
+paginate: true
+---
+
+
+<!-- _class: lead -->
+
+# FDE101 Bonus Module C — Deploy for GCP Customers
+
+## FDE101 · mlopsguru
+
+---
+
+# Welcome
+
+- FDE101 Bonus C: Deploy for GCP Customers
+- "Gemini in their project, the simple way"
+
+<!-- For Google Cloud customers. Hooks: Gemini models in-project + Cloud Run being the easiest serverless container platform. -->
+
+
+---
+
+# When you reach for GCP
+
+- Data/AI-forward (BigQuery, Vertex)
+- Google Workspace / GKE shops
+- Want Gemini in-project
+
+<!-- These surface in discovery. GCP customers are often data-heavy and AI-curious — a great fit for the pilot. -->
+
+
+---
+
+# The GCP architecture
+
+- Cloud LB → Cloud Run → Vertex AI + Vector Search
+- Secret Manager, IAM, Cloud Monitoring
+- All in the customer's project
+
+<!-- Walk the diagram. Emphasize in-project data and Cloud Run simplicity. -->
+
+
+---
+
+# Compute: Cloud Run vs GKE
+
+- Cloud Run: simplest, scale-to-zero, pay-per-use
+- GKE Autopilot: managed K8s if mandated
+- Cloud Run is the default for pilots
+
+<!-- Cloud Run is arguably the easiest container deploy across all three clouds — push image, get HTTPS URL. GKE only if the customer demands Kubernetes. -->
+
+
+---
+
+# Images with Artifact Registry
+
+- Build → push to Artifact Registry
+- IAM-controlled pulls
+- Vulnerability scanning available
+
+<!-- Artifact Registry replaced Container Registry (GCR). IAM controls access; scanning helps security teams. -->
+
+
+---
+
+# LLM: Vertex AI (Gemini)
+
+- Gemini 1.5 Flash (fast/cheap) or Pro (quality)
+- Data stays in project/region
+- Swap OpenAI client → Vertex SDK
+
+<!-- Centerpiece. Show the swappable LLM design: only the client/model call changes. Flash vs Pro is the cost/quality lever. -->
+
+
+---
+
+# Embeddings: Vertex AI
+
+- text-embedding-004
+- In-project embeddings
+- Re-embed when changing models
+
+<!-- Same re-ingest rule. Embeddings + LLM both from Vertex AI. -->
+
+
+---
+
+# Vector store: Vertex AI Vector Search
+
+- Managed ANN at large scale
+- Low-latency similarity search
+- (Was "Matching Engine")
+
+<!-- Direct ChromaDB upgrade for scale. For smaller pilots, AlloyDB/Cloud SQL pgvector can be simpler and cheaper — mention the trade-off. -->
+
+
+---
+
+# Fastest path: Vertex AI RAG Engine
+
+- Managed ingest + retrieve orchestration
+- Less to build for a pilot
+- Pairs with Gemini
+
+<!-- GCP's managed RAG option — analogous to Bedrock KB / Azure "on your data." Good for speed-first pilots. -->
+
+
+---
+
+# Secrets: Secret Manager
+
+- No secrets in env/images
+- Service account reads at runtime
+- Versioned secrets
+
+<!-- Contrast with local `.env`. Service account + Secret Manager = no creds in code. -->
+
+
+---
+
+# Identity: Cloud IAM
+
+- Service account = app identity (least privilege)
+- Identity Platform / Workspace SSO for agents
+- Workload Identity on GKE
+
+<!-- Service accounts are the app's identity. Grant only Vertex + Vector Search + Secret Manager access. Your IAM mindset transfers directly. -->
+
+
+---
+
+# Networking
+
+- VPC + Cloud Load Balancing (global)
+- Private Service Connect for Vertex
+- VPC Service Controls for exfiltration protection
+
+<!-- VPC-SC is a strong GCP security feature — it creates a perimeter preventing data exfiltration. A security-review highlight for regulated customers. -->
+
+
+---
+
+# Observability
+
+- Cloud Trace: request tracing
+- Cloud Monitoring: metrics + alerts
+- Cloud Logging: structured logs
+
+<!-- The operations suite (formerly Stackdriver). Reuse `/health` + custom metrics for latency/retrieval quality. -->
+
+
+---
+
+# Infrastructure as Code
+
+- Terraform (standard on GCP)
+- Per-project or per-env
+- Labels for cost tracking
+
+<!-- Terraform is the norm. Labels (GCP's tags) enable cost attribution. -->
+
+
+---
+
+# CI/CD
+
+- Cloud Build or GitHub Actions
+- Build → Artifact Registry → Cloud Run deploy
+- Revisions + traffic splitting for canary
+
+<!-- Cloud Run traffic splitting enables easy canary/blue-green. Tie to iterative delivery from Ch 3. -->
+
+
+---
+
+# Cost control (FDE skill)
+
+- Cloud Run scale-to-zero (pay only on requests)
+- Gemini Flash for cost, Pro for quality
+- Vector Search has index serving cost — pgvector cheaper for tiny pilots
+- Delete project/resources when idle
+
+<!-- Cloud Run's pay-per-request is excellent for sporadic pilot traffic. Vector Search has standing cost — call out pgvector for small pilots. -->
+
+
+---
+
+# Security posture summary
+
+- Data in project (Vertex + Vector Search)
+- IAM least privilege, service accounts, Secret Manager
+- VPC-SC perimeter, Private Service Connect, encryption
+- Cloud Audit Logs
+
+<!-- The GCP security answer sheet. VPC Service Controls is the standout differentiator for data-sensitive customers. -->
+
+
+---
+
+# Topic: Multi-Agent Orchestration on GCP
+
+- One agent → a **team of specialized agents** coordinated by an orchestrator
+- When to use: workflows too broad for a single prompt/toolset
+- RetailCo example: an **orchestrator** routes "policy" questions → **RAG agent**, "order" questions → **order-lookup agent**, "warranty claims" → **claims agent**
+- Benefits: separation of concerns, per-agent prompts/tools/safety settings, easier eval
+
+<!-- Same motivation as the other clouds — a single mega-prompt becomes brittle as pilots grow. Google has rapidly built out first-party agent tooling (ADK + Agent Engine), so this resonates with Vertex-AI customers. Use the RetailCo split as the running example. -->
+
+
+---
+
+# GCP services for multi-agent
+
+- **Agent Development Kit (ADK)**: Google's open-source framework for multi-agent systems
+- **Vertex AI Agent Engine**: managed runtime to deploy/scale agents (with sessions + tracing)
+- **Agent2Agent (A2A) protocol**: open standard for agent-to-agent interop across frameworks
+- **Workflows / Cloud Tasks**: deterministic orchestration of agent/tool steps with retries
+- **Observability**: Cloud Trace + Cloud Logging; tag spans per agent for cost/latency attribution
+
+<!-- Map options to control level. ADK = code-first multi-agent authoring; Agent Engine = managed deploy/scale with built-in tracing; A2A = interop standard worth mentioning when a customer has agents in multiple frameworks/vendors. Workflows = deterministic, auditable orchestration with human-approval steps for regulated customers. Stress per-agent tracing in Cloud Trace for debugging, cost, and audit. -->
+
+
+---
+
+# What we deployed
+
+- Pilot live in customer GCP project
+- Vertex AI (Gemini) + Vector Search RAG
+- IAM-secured, observable, IaC-managed
+- Production-ready foundation
+
+
+
+## Demo (Instructor-led): Deploy to GCP
+
+> **Note:** Requires a GCP project with Vertex AI API enabled and billing on. If teaching without live GCP, present the IaC/CLI + console screenshots and run the local pilot alongside to show identical behavior.
+
+**Walkthrough script:**
+
+1. Create registry and push image:
+   ```bash
+   cd ../../lab
+   gcloud artifacts repositories create retailco --repository-format=docker --location=australia-southeast1
+   gcloud auth configure-docker australia-southeast1-docker.pkg.dev
+   docker build -t australia-southeast1-docker.pkg.dev/PROJECT_ID/retailco/pilot:latest .
+   docker push australia-southeast1-docker.pkg.dev/PROJECT_ID/retailco/pilot:latest
+   ```
+2. Show the Vertex AI swap concept (config-driven model/region); same `/chat` flow.
+3. Deploy to Cloud Run:
+   ```bash
+   gcloud run deploy retailco-pilot \
+     --image australia-southeast1-docker.pkg.dev/PROJECT_ID/retailco/pilot:latest \
+     --region australia-southeast1 --port 8000 --allow-unauthenticated \
+     --set-env-vars LLM_PROVIDER=vertex,VERTEX_MODEL=gemini-1.5-flash,VECTOR_BACKEND=vertex_vector_search
+   ```
+4. Hit the Cloud Run URL `/health`, then `/chat` with the RetailCo questions.
+5. Show Cloud Trace + Secret Manager holding secrets.
+
+**Reference Terraform (teaching snippet — adapt to the customer project):**
+
+```hcl
+# Cloud Run service running the pilot (abridged for teaching)
+resource "google_cloud_run_v2_service" "pilot" {
+  name     = "retailco-pilot"
+  location = var.region
+
+  template {
+    service_account = google_service_account.pilot.email   # least-privilege SA
+
+    scaling {
+      min_instance_count = 0   # scale-to-zero for cost
+      max_instance_count = 3
+    }
+
+    containers {
+      image = "${var.region}-docker.pkg.dev/${var.project}/retailco/pilot:latest"
+      ports { container_port = 8000 }
+
+      env {
+        name  = "LLM_PROVIDER"
+        value = "vertex"
+      }
+      env {
+        name  = "VERTEX_MODEL"
+        value = "gemini-1.5-flash"
+      }
+      env {
+        name  = "VECTOR_BACKEND"
+        value = "vertex_vector_search"
+      }
+      # secret from Secret Manager
+      env {
+        name = "ORDER_API_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.order_api.secret_id
+            version = "latest"
+          }
+        }
+      }
+    }
+  }
+}
+
+# Grant the service account only what the pilot needs
+resource "google_project_iam_member" "vertex" {
+  project = var.project
+  role    = "roles/aiplatform.user"
+  member  = "serviceAccount:${google_service_account.pilot.email}"
+}
+```
+
+**Takeaway:** Same pilot, now running in the customer's GCP project with data kept in-region.
+
+
+## Hands-On Exercise
+
+**Title:** GCP deployment plan + Vertex AI swap
+
+**Instructions for students:**
+1. Write a one-page GCP deployment plan for RetailCo: services, VPC, IAM/service accounts, cost estimate.
+2. Update the pilot's LLM provider switch so `LLM_PROVIDER=vertex` is documented (Vertex SDK call, model, region).
+3. Choose: Vertex AI Vector Search vs AlloyDB/Cloud SQL pgvector — justify for a 2-week pilot.
+4. (Stretch) Write the Terraform for Artifact Registry + one Cloud Run service with a service account.
+
+**Deliverable:** Deployment plan + provider-swap notes + vector-store decision with justification.
+
+**Solution notes (instructor):** Reward least-privilege service accounts, scale-to-zero Cloud Run, VPC-SC mention for data protection, and choosing pgvector for tiny pilots vs Vector Search for scale.
+
+
+## Quiz (7 questions)
+
+1. What is the data-residency benefit of Vertex AI over public OpenAI? *(data stays in the GCP project/region)*
+2. Why is Cloud Run a great default for pilots? *(serverless, scale-to-zero, pay-per-request, simplest)*
+3. Which managed service stores vectors at scale on GCP? *(Vertex AI Vector Search)*
+4. What identity does a Cloud Run app use to access Vertex/Secrets? *(a least-privilege service account)*
+5. What does VPC Service Controls protect against? *(data exfiltration — creates a security perimeter)*
+6. Name two cost levers in this stack. *(Cloud Run scale-to-zero; Gemini Flash vs Pro; Vector Search vs pgvector; delete resources)*
+7. Name two GCP options for multi-agent orchestration and when you'd pick each. *(ADK = code-first authoring; Agent Engine = managed deploy/scale with tracing; A2A = cross-framework interop; Workflows = deterministic/auditable with human-in-the-loop)*
+
+
+## Cost & Security Notes
+
+- **Cost:** Cloud Run pay-per-request (cheap idle), Vertex AI per-token/char, Vector Search has standing index serving cost — prefer pgvector for tiny pilots. Delete resources when idle.
+- **Security:** In-project data, IAM service accounts, Secret Manager, VPC Service Controls + Private Service Connect, encryption at rest/in transit, Cloud Audit Logs.
+
+## Downloadable Resources
+
+- RAG/vector deep-dive → `../../../docs/vector-dbs-and-rag-architectures.md`
+- Local deployment runbook → `../../../lab/deliverables/deployment-runbook.md`
+- Lab Dockerfile → `../../../lab/Dockerfile`
+
+<!-- Recap. Same Core Track app, now enterprise-deployed on GCP. -->
+
+
+---
